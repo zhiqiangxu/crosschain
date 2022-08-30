@@ -109,4 +109,24 @@ contract Bridge is Ownable, AccessControl, ReentrancyGuard {
             _payload
         );
     }
+
+    function updateKeepers(address[] calldata _newKeepers, bytes calldata _sigs)
+        external
+        nonReentrant
+    {
+        require(_newKeepers.length > 0);
+
+        {
+            bytes32 hash = keccak256(
+                abi.encodePacked("updateKeepers", _newKeepers)
+            );
+            uint256 n = keepers.length;
+            require(
+                Utils.verifySigs(hash, _sigs, keepers, n - (n - 1) / 3),
+                "NO_SIG"
+            );
+        }
+
+        keepers = _newKeepers;
+    }
 }
