@@ -28,7 +28,8 @@ contract Bridge is Ownable, AccessControl, ReentrancyGuard {
     uint256 public nonce;
     address[] private keepers;
     uint16 private immutable chainID;
-    mapping(address => bool) public whiteListToContracMap;
+    mapping(address => bool) public whiteListFromMap;
+    mapping(address => bool) public whiteListToContractMap;
     mapping(uint16 => mapping(uint256 => bool)) doneMap;
 
     constructor(uint16 _chainID, address[] memory _keepers) {
@@ -51,6 +52,8 @@ contract Bridge is Ownable, AccessControl, ReentrancyGuard {
         bytes calldata _destination,
         bytes calldata _payload
     ) external payable nonReentrant {
+        require(whiteListFromMap[msg.sender], "INVALID_FROM");
+
         emit Packet(msg.sender, nonce++, _dstChainID, _destination, _payload);
     }
 
@@ -86,7 +89,7 @@ contract Bridge is Ownable, AccessControl, ReentrancyGuard {
             );
         }
 
-        require(whiteListToContracMap[_dstAddress], "INVALID_TO");
+        require(whiteListToContractMap[_dstAddress], "INVALID_TO");
 
         require(!doneMap[_srcChainID][_nonce], "ALREADY_DONE");
         doneMap[_srcChainID][_nonce] = true;
@@ -128,5 +131,21 @@ contract Bridge is Ownable, AccessControl, ReentrancyGuard {
         }
 
         keepers = _newKeepers;
+    }
+
+    function addWhiteListFrom(address addr) external onlyOwner {
+        whiteListFromMap[addr] = true;
+    }
+
+    function delWhiteListFrom(address addr) external onlyOwner {
+        delete whiteListFromMap[addr];
+    }
+
+    function addWhiteListTo(address addr) external onlyOwner {
+        whiteListToContractMap[addr] = true;
+    }
+
+    function delWhiteListTo(address addr) external onlyOwner {
+        delete whiteListToContractMap[addr];
     }
 }
