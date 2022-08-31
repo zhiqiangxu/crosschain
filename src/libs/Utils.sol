@@ -94,6 +94,31 @@ library Utils {
         }
     }
 
+    function bytesToUint256(bytes memory _bs)
+        internal
+        pure
+        returns (uint256 value)
+    {
+        require(_bs.length == 32, "bytes length is not 32.");
+        assembly {
+            value := mload(add(_bs, 0x20))
+        }
+    }
+
+    function uint256ToBytes(uint256 _value)
+        internal
+        pure
+        returns (bytes memory bs)
+    {
+        assembly {
+            bs := mload(0x40)
+            mstore(bs, 0x20)
+            mstore(add(bs, 0x20), _value)
+
+            mstore(0x40, add(bs, 0x40))
+        }
+    }
+
     function containMAddresses(
         address[] memory _keepers,
         address[] memory _signers,
