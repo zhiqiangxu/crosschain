@@ -27,6 +27,19 @@ library Utils {
         }
     }
 
+    function addressToBytes(address _addr)
+        internal
+        pure
+        returns (bytes memory bs)
+    {
+        assembly {
+            bs := mload(0x40)
+            mstore(bs, 0x14)
+            mstore(add(bs, 0x20), shl(96, _addr))
+            mstore(0x40, add(bs, 0x40))
+        }
+    }
+
     function sliceToBytes32(bytes memory _bytes, uint256 _start)
         internal
         pure
